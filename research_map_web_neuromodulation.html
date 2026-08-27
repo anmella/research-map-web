@@ -661,8 +661,14 @@ body{font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--i
 button{font:inherit}
 
 /* ── header ───────────────────────────────────────────────────────────── */
-header{display:flex; align-items:center; gap:14px; flex-wrap:wrap; z-index:1200;
+/* (2026-08-26) DOS filas FIJAS: antes era flex-wrap y el selector de grano saltaba de sitio
+   cuando el subtítulo cambiaba de longitud con la lente (Gerard: «¿por qué cambia de lugar?») */
+header{display:flex; flex-direction:column; align-items:stretch; gap:6px; z-index:1200;
        padding:8px 14px; background:var(--surface); border-bottom:1px solid var(--grid)}
+.hrow{display:flex; align-items:center; gap:14px; flex-wrap:nowrap; min-width:0}
+.hrow .sub{overflow:hidden; text-overflow:ellipsis}
+.seg-view button.on{background:var(--accent)}
+#persona header{flex-direction:row; align-items:center; gap:12px; flex-wrap:wrap}
 header h1{font-size:16px; font-weight:650; white-space:nowrap}
 header .sub{color:var(--muted); font-size:11.5px; white-space:nowrap}
 .seg{display:flex; border:1px solid var(--baseline); border-radius:8px; overflow:hidden}
@@ -675,7 +681,7 @@ header .sub{color:var(--muted); font-size:11.5px; white-space:nowrap}
 #search:focus{outline:2px solid var(--accent); outline-offset:-1px}
 select{padding:5px 8px; border:1px solid var(--baseline); border-radius:8px;
        font:inherit; font-size:12.5px; background:var(--surface)}
-#btn-filters,#btn-persona{padding:5px 10px; border:1px solid var(--baseline); border-radius:8px;
+#btn-filters,#btn-datos{padding:5px 10px; border:1px solid var(--baseline); border-radius:8px;
              background:var(--surface); color:var(--ink2); cursor:pointer; font-size:12.5px}
 #btn-filters.active{background:var(--ink); color:#fff}
 .spacer{flex:1}
@@ -775,8 +781,11 @@ main{flex:1; position:relative; min-height:0}
          flex-direction:column}
 #persona.open{display:flex}
 #persona header{border-bottom:1px solid var(--grid)}
-#persona header .close{margin-left:auto; border:0; background:none; font-size:20px;
-                       color:var(--muted); cursor:pointer; padding:4px 8px}
+#persona header .close{margin-left:0; border:1px solid var(--ink); background:var(--ink); color:#fff;
+                       font-size:12.5px; border-radius:8px; cursor:pointer; padding:5px 11px}
+.chip-sm{display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; border:1px solid var(--baseline);
+         cursor:pointer; color:var(--ink2); background:var(--surface)}
+.chip-sm:hover{background:var(--ink); color:#fff}
 #p-main{flex:1; display:grid; grid-template-columns:1fr 400px; grid-template-rows:minmax(0,1fr); min-height:0}
 #p-pane{position:relative; min-height:0; background:var(--surface); border-right:1px solid var(--grid)}
 #p-net{position:absolute; inset:0}
@@ -841,13 +850,20 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
 </head>
 <body>
 <header>
-  <div>
-    <h1 id="t-topic">Research Map</h1>
-    <div class="sub" id="t-sub"></div>
+  <div class="hrow">
+    <div style="min-width:0">
+      <h1 id="t-topic">Research Map</h1>
+      <div class="sub" id="t-sub"></div>
+    </div>
+    <span class="spacer"></span>
+    <div class="seg seg-view" id="seg-view">
+      <button id="btn-map" class="on" data-tip="<b>Research Map</b>: el mapa del tema — equipos, personas y colaboraciones sobre el mapa mundial.">🗺 Research Map</button>
+      <button id="btn-persona" data-tip="<b>Mapa personal</b> — el radial de líneas y colaboradores de cualquier investigador del mundo, sin tener que encontrarlo antes en este mapa. Se vuelve con la pestaña «Research Map».">👤 Mapa personal</button>
+    </div>
   </div>
+  <div class="hrow">
   <input id="search" list="search-list" placeholder="🔎 persona (cualquiera del mundo) o equipo…">
   <datalist id="search-list"></datalist>
-  <button id="btn-persona" data-tip="<b>Mapa personal</b> — el radial de líneas y colaboradores de cualquier investigador del mundo, sin tener que encontrarlo antes en este mapa.">👤 Mapa personal</button>
   <div class="seg" id="seg-grain">
     <button data-v="person" data-tip="<b>Personas</b>: cada investigador por separado, <b>sin agrupar en equipos</b>. Útil cuando el paraguas del equipo tapa a quien te interesa.">Personas</button>
     <button data-v="team" class="on" data-tip="<b>Equipos</b> por <b>autoría senior</b>: cada equipo es quien dirige (>=3 papers senior, dirigiendo a >=2 primeros autores distintos, en >=2 años) más la gente que cuelga de él.">Equipos</button>
@@ -858,6 +874,7 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
   <span class="spacer"></span>
   <button id="btn-filters">≡ Filtros</button>
   <button id="btn-datos" data-tip="Qué datos usa este mapa, de dónde salen y cómo pedir una corrección.">Datos y derechos</button>
+  </div>
 </header>
 
 <div id="filters-pop">
@@ -994,17 +1011,30 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
 <!-- overlay persona -->
 <div id="persona">
   <header>
-    <div><h1 id="p-who">—</h1><div class="sub" id="p-sub"></div></div>
-    <select id="p-scope" style="margin-left:auto;padding:6px 8px;border:1px solid var(--baseline);
-            border-radius:9px;font:inherit;font-size:12.5px;max-width:320px"
-            title="Filtra su obra por cualquiera de los temas del mapa, aunque no estés dentro de él."></select>
-    <input id="p-search" placeholder="🔎 buscar a otra persona…" style="width:250px;
+    <div class="seg seg-view">
+      <button id="p-back" data-tip="Volver al mapa del tema, al mismo sitio donde estabas.">🗺 Research Map</button>
+      <button class="on">👤 Mapa personal</button>
+    </div>
+    <div style="min-width:0;flex:1"><h1 id="p-who">—</h1><div class="sub" id="p-sub"></div></div>
+    <div id="p-scope-box" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="flab" style="margin:0" data-tip="<b>Filtro = TEMA del proyecto</b> (la misma búsqueda que define cada mapa).<br><br>
+        Las <b>líneas</b> del radial son otra cosa: la clasificación oficial de <b>OpenAlex</b> de cada artículo.
+        Por eso, filtrando por un tema, pueden aparecer líneas con otro nombre: un artículo entra en el tema
+        «Fear, Extinction &amp; OCD» por su texto y OpenAlex lo clasifica como «Psychedelics and Drug Studies».">Filtrar por tema <span class="q">?</span></span>
+      <select id="p-scope" style="padding:6px 8px;border:1px solid var(--baseline);
+              border-radius:9px;font:inherit;font-size:12.5px;max-width:300px"></select>
+      <span id="p-scope-chips"></span>
+    </div>
+    <input id="p-search" placeholder="🔎 buscar a otra persona…" style="width:220px;
            padding:6px 10px;border:1px solid var(--baseline);border-radius:9px;font:inherit;font-size:13px"
            title="Escribe un nombre y pulsa Intro para saltar a su mapa, sin volver atrás.">
+    <button id="p-fb" data-tip="¿Te han fusionado con otro, faltan artículos, sobra alguien? Cuéntamelo."
+            style="border:1px solid var(--baseline);background:var(--surface);border-radius:7px;
+                   padding:4px 9px;cursor:pointer;font-size:12.5px">✎ ¿Algo mal? Cuéntamelo</button>
     <button id="p-link" title="copiar el enlace directo a este mapa personal (se abre sin pasar por el mapa general)"
             style="border:1px solid var(--baseline);background:var(--surface);border-radius:7px;
                    padding:4px 9px;cursor:pointer;font-size:13px">🔗</button>
-    <button class="close" id="p-close" title="volver al mapa">✕</button>
+    <button class="close" id="p-close" title="volver al mapa">← Volver al mapa</button>
   </header>
   <div id="p-main">
     <div id="p-pane"><div id="p-net"></div><div id="p-status" style="display:none"></div></div>
@@ -1106,7 +1136,7 @@ const htmlTip = html => { const d = document.createElement('div'); d.innerHTML =
 const ycOf = n => Array.isArray(n.yc) ? n.yc : [];
 const $ = id => document.getElementById(id);
 
-const S = {grain:'team', lens:'pi', yearFrom:D.meta.year_min, topN:0, country:'', selTeam:null, pScope:'topic',
+const S = {grain:'team', lens:'pi', yearFrom:D.meta.year_min, topN:0, country:'', selTeam:null, pScope:'topic', expandedSite:null,
            hl:D.meta.half_life,        // vida media en años; 0 = papers crudos
            numMode:'papers',           // qué número enseñar: papers | peso | barras
            wmode:'vol'};               // qué pesa un paper: vol | imp | exc
@@ -1311,8 +1341,10 @@ function computeVisible() {
 const map = L.map('map', {worldCopyJump:true, preferCanvas:true, zoomControl:false})
   .setView([30, 8], 2);
 L.control.zoom({position:'bottomright'}).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  {attribution:'© OpenStreetMap · © CARTO', maxZoom:12, subdomains:'abcd'}).addTo(map);
+/* (2026-08-26) CARTO empezó a exigir API key: las teselas salían con «API KEY REQUIRED».
+   OpenStreetMap estándar no la necesita (uso ligero + atribución). */
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {attribution:'© OpenStreetMap contributors', maxZoom:18}).addTo(map);
 const arcLayer = L.layerGroup().addTo(map);      // arcos debajo
 const markerLayer = L.layerGroup().addTo(map);   // burbujas encima
 const personArcLayer = L.layerGroup().addTo(map);// arcos de LA PERSONA seleccionada (encima)
@@ -1368,23 +1400,40 @@ function arcPoints(a, b) {                       // bezier suave entre dos sedes
    que el usuario haya elegido mostrar. Sin equipos de por medio. */
 function refreshPersonList() {
   const q = (($('team-filter') || {}).value || '').trim().toLowerCase();
+  const tf = $('team-filter'); if (tf) tf.placeholder = '🔎 buscar persona (también las ocultas por la lente)…';
+  const match = n => (n.name || '').toLowerCase().includes(q);
   let gente = N.filter(n => vis_ids.has(n.i));
-  if (q) gente = gente.filter(n => (n.name || '').toLowerCase().includes(q));
+  let ocultos = [];
+  if (q) {
+    gente = gente.filter(match);
+    // (2026-08-26) Joyce/Frye «no aparecen»: estaban, pero con peso 0 no salían ni al buscarlos.
+    ocultos = N.filter(n => !vis_ids.has(n.i) && match(n)).slice(0, 12);
+  }
   gente.sort((a, b) => metricOf(b.i) - metricOf(a.i));
   const rows = gente.slice(0, 60);
   $('teams-h').innerHTML = `Personas · ${q ? rows.length + ' de ' + gente.length : gente.length} visibles` +
     (gente.length > rows.length ? ` <span class="hint">(top ${rows.length})</span>` : '');
   $('teams-h').dataset.tip = `<b>Personas</b><br><br>Cada investigador por separado, <b>sin agrupar</b>.
-    El número es el que hayas elegido en «Qué número mostrar», con la lente activa.`;
+    Flecha = trayectoria (${TR_P0}–${TR_P1} → ${TR_R0}–${TR_R1}, comparándose consigo mismo) ·
+    número = el que hayas elegido en «Qué número mostrar», con la lente activa.`;
   const maxW = rows[0] ? liveW[rows[0].i] : 1;
-  $('team-list').innerHTML = rows.map(n => {
+  const fila = n => {
     const inst = n.inst != null ? SITE(siteOf(n.inst)) : null;
+    const t = nodeTrend(n);
     return `<div class="team-row" onclick="showAuthorCard(${n.i})"
-      data-tip="${esc(numTip(n.name, liveW[n.i], liveRaw[n.i]))}">
+      data-tip="${esc(numTip(n.name, liveW[n.i], liveRaw[n.i]) + '<br><br>' + trendTip(t))}">
       <span class="dot" style="background:${colorByLevel.team[n.ct] || OTHER}"></span>
       <span class="nm">${esc(n.name)}${inst ? ` <span class="hint">· ${esc(inst.name)}</span>` : ''}</span>
-      <span class="w">${numHTML(n, liveW[n.i], liveRaw[n.i], maxW)}</span></div>`;
-  }).join('');
+      <span class="tr ${t[1]}">${t[0]}</span>
+      ${numHTML(n, liveW[n.i], liveRaw[n.i], maxW)}</div>`;
+  };
+  $('team-list').innerHTML = rows.map(fila).join('') +
+    (ocultos.length ? `<div class="hint" style="padding:8px 6px 2px"><b>${ocultos.length} en el corpus pero ocultas</b>
+       <span class="q" data-tip="Están en este tema pero <b>pesan 0 con la lente y filtros actuales</b> (p. ej. 0 papers
+         como primer autor con la lente «1º autor»). Clic → su ficha explica cómo verlas.">?</span></div>` +
+      ocultos.map(n => `<div class="team-row" style="opacity:.6" onclick="showAuthorCard(${n.i})">
+        <span class="dot" style="background:${OTHER}"></span>
+        <span class="nm">${esc(n.name)} <span class="hint">· ${n.np} papers · peso 0 con esta lente</span></span></div>`).join('') : '');
 }
 
 let instAgg = new Map();
@@ -1409,46 +1458,72 @@ function refreshMap() {
      Al alejar el zoom la espiral colapsa en la ciudad; al acercar, se separan las personas. */
   personPos.clear();
   if (PERSON()) {
-    const gente = N.filter(n => vis_ids.has(n.i) && n.inst != null)
-      .sort((a, b) => metricOf(b.i) - metricOf(a.i));
-    const MAXP = 600;                         // tope de puntos individuales (rendimiento)
-    const shown = gente.slice(0, MAXP);
-    const enSede = new Map();
-    let maxM = 0; for (const n of shown) maxM = Math.max(maxM, metricOf(n.i));
-    for (const n of shown) {
+    /* (2026-08-26, Gerard: «aparecen puntos por la ciudad sin sentido; que aparezcan en el mismo
+       lugar y se puedan ampliar»). Ahora: UNA burbuja por SEDE con la gente que hay allí; clic →
+       tarjeta con las personas agrupadas por institución; «Desplegar» abre en espiral SOLO esa sede. */
+    const porSede = new Map();
+    for (const n of N) {
+      if (!vis_ids.has(n.i) || n.inst == null) continue;
       const sid = siteOf(n.inst), s = SITE(sid);
       if (!s || s.lat == null) continue;
-      const k = enSede.get(sid) || 0; enSede.set(sid, k + 1);
-      // espiral de girasol: ángulo áureo, radio ∝ √k (~1 km por paso; el más fuerte, en el centro)
-      const ang = k * 2.39996, r = 0.011 * Math.sqrt(k);
-      const lat = s.lat + r * Math.sin(ang);
-      const lon = s.lon + r * Math.cos(ang) / Math.max(0.2, Math.cos(s.lat * Math.PI / 180));
-      personPos.set(n.i, [lat, lon]);
-      const m = L.circleMarker([lat, lon], {
-        radius: 4 + 9 * Math.sqrt(metricOf(n.i) / (maxM || 1)),
-        color: 'rgba(11,11,11,.5)', weight: 1,
-        fillColor: colOfCl(clOf(n)), fillOpacity: .8});
-      const inst = INST[n.inst];
-      m.bindTooltip(`<b>${esc(n.name)}</b><br>${esc(inst ? inst.name : '?')} · ${liveRaw[n.i]} papers`,
-                    {direction:'top'});
-      m.on('click', () => showAuthorCard(n.i));
-      markerLayer.addLayer(m);
+      if (!porSede.has(sid)) porSede.set(sid, []);
+      porSede.get(sid).push(n);
     }
-    if (gente.length > MAXP)
-      console.log(`[mapa] personas: se dibujan las ${MAXP} más fuertes de ${gente.length}`);
-    // líneas entre PERSONAS (top 60 aristas por peso vivo entre puntos dibujados)
-    const pes = E.filter(e => personPos.has(e.s) && personPos.has(e.t))
-      .map(e => ({e, w: edgeW(e)})).filter(x => x.w > 0)
-      .sort((a, b) => b.w - a.w).slice(0, 60);
-    const wTop = pes[0]?.w || 1;
-    for (const {e, w} of pes) {
-      const A = personPos.get(e.s), B = personPos.get(e.t);
-      if (A[0] === B[0] && A[1] === B[1]) continue;
-      const pl = L.polyline(arcPoints({lat:A[0], lon:A[1]}, {lat:B[0], lon:B[1]}),
-        {color:'#52514e', weight: 1 + 3 * Math.sqrt(w / wTop), opacity:.32, interactive:true});
-      pl.bindTooltip(`${esc(N[e.s].name)} ↔ ${esc(N[e.t].name)} · ${e.n} papers juntos`, {sticky:true});
-      pl.on('click', () => showAuthorCard(e.s));
-      arcLayer.addLayer(pl);
+    const tot = g => g.reduce((a, n) => a + metricOf(n.i), 0);
+    let maxM = 0; for (const g of porSede.values()) maxM = Math.max(maxM, tot(g));
+    // pasada 1: posiciones (centro de sede, o espiral si la sede está desplegada)
+    for (const [sid, g] of porSede) {
+      const s = SITE(sid); g.sort((a, b) => metricOf(b.i) - metricOf(a.i));
+      const expanded = String(S.expandedSite) === String(sid);
+      g.forEach((n, k) => {
+        if (!expanded) { personPos.set(n.i, [s.lat, s.lon]); return; }
+        const ang = k * 2.39996, r = 0.011 * Math.sqrt(k);
+        personPos.set(n.i, [s.lat + r * Math.sin(ang),
+                            s.lon + r * Math.cos(ang) / Math.max(0.2, Math.cos(s.lat * Math.PI / 180))]);
+      });
+    }
+    // pasada 2: marcadores (sedes grandes primero → quedan debajo)
+    for (const [sid, g] of [...porSede.entries()].sort((a, b) => tot(b[1]) - tot(a[1]))) {
+      const s = SITE(sid), expanded = String(S.expandedSite) === String(sid);
+      const byCl = new Map(); for (const n of g) byCl.set(n.ct, (byCl.get(n.ct) || 0) + liveW[n.i]);
+      let domCl = null, domW = -1; for (const [c, w] of byCl) if (w > domW) { domW = w; domCl = c; }
+      if (!expanded) {
+        const m = L.circleMarker([s.lat, s.lon], {
+          radius: 6 + 20 * Math.log(1 + tot(g)) / Math.log(1 + (maxM || 1)),
+          color: 'rgba(11,11,11,.45)', weight: 1.2,
+          fillColor: colorByLevel.team[domCl] || OTHER, fillOpacity: .6});
+        m.bindTooltip(`<b>${esc(s.name)}</b>${s.n_inst > 1 ? ` <span style="opacity:.7">· ${s.n_inst} centros</span>` : ''}<br>
+          <b>${g.length}</b> persona${g.length === 1 ? '' : 's'} · ${esc(g.slice(0, 3).map(n => n.name).join(' · '))}${g.length > 3 ? ' …' : ''}<br>
+          <i>clic: ver quién hay y desplegar</i>`, {direction: 'top'});
+        m.on('click', () => showSiteCard(sid));
+        markerLayer.addLayer(m); markerByInst.set(sid, m);
+      } else {
+        const top = g[0] ? metricOf(g[0].i) : 1;
+        for (const n of g) {
+          const P = personPos.get(n.i), inst = INST[n.inst];
+          const m = L.circleMarker(P, {
+            radius: 5 + 9 * Math.sqrt(metricOf(n.i) / (top || 1)),
+            color: 'rgba(11,11,11,.5)', weight: 1,
+            fillColor: colorByLevel.team[n.ct] || OTHER, fillOpacity: .85});
+          m.bindTooltip(`<b>${esc(n.name)}</b><br>${esc(inst ? inst.name : '?')} · ${liveRaw[n.i]} papers`, {direction: 'top'});
+          m.on('click', () => showAuthorCard(n.i));
+          markerLayer.addLayer(m);
+        }
+        // líneas de las personas desplegadas con sus colaboradores (top 60 por peso vivo)
+        const ids = new Set(g.map(n => n.i));
+        const pes = E.filter(e => (ids.has(e.s) || ids.has(e.t)) && personPos.has(e.s) && personPos.has(e.t))
+          .map(e => ({e, w: edgeW(e)})).filter(x => x.w > 0).sort((a, b) => b.w - a.w).slice(0, 60);
+        const wTop = pes[0]?.w || 1;
+        for (const {e, w} of pes) {
+          const A = personPos.get(e.s), B = personPos.get(e.t);
+          if (A[0] === B[0] && A[1] === B[1]) continue;
+          const pl = L.polyline(arcPoints({lat: A[0], lon: A[1]}, {lat: B[0], lon: B[1]}),
+            {color: '#52514e', weight: 1 + 3 * Math.sqrt(w / wTop), opacity: .35, interactive: true});
+          pl.bindTooltip(`${esc(N[e.s].name)} ↔ ${esc(N[e.t].name)} · ${e.n} papers juntos`, {sticky: true});
+          pl.on('click', () => showAuthorCard(ids.has(e.s) ? e.s : e.t));
+          arcLayer.addLayer(pl);
+        }
+      }
     }
   }
   /* arcos de colaboración entre clusters (top 40 visibles; solo del equipo si hay selección) */
@@ -1843,6 +1918,38 @@ function showInstCard(ii) {
   openDetail();
 }
 
+/* (2026-08-26) Modo PERSONAS: ¿quién hay en esta sede? agrupado por institución, con «desplegar» */
+window.showSiteCard = function(sid) {
+  const s = SITE(sid);
+  const g = N.filter(n => vis_ids.has(n.i) && n.inst != null && String(siteOf(n.inst)) === String(sid))
+             .sort((a, b) => metricOf(b.i) - metricOf(a.i));
+  const byInst = new Map();
+  for (const n of g) { if (!byInst.has(n.inst)) byInst.set(n.inst, []); byInst.get(n.inst).push(n); }
+  const insts = [...byInst.entries()].sort((a, b) => b[1].length - a[1].length);
+  const expanded = String(S.expandedSite) === String(sid);
+  const maxW = g[0] ? liveW[g[0].i] : 1;
+  detail.innerHTML = `
+    <h3>${esc(s.name)}</h3>
+    <div class="meta">${esc((s.city ? s.city + ' · ' : '') + (s.cc ?? '?'))} · <b>${g.length}</b> persona${g.length === 1 ? '' : 's'} · ${insts.length} centro${insts.length === 1 ? '' : 's'}</div>
+    <button class="btn ${expanded ? '' : 'primary'}" onclick="toggleSite('${esc(String(sid))}')"
+      data-tip="${expanded ? 'Vuelve a juntar a todas las personas de esta sede en una sola burbuja.' : 'Abre las personas de esta sede en el mapa (en espiral alrededor del centro, la más activa en medio) con sus líneas de colaboración.'}">
+      ${expanded ? '⤵ Recoger en una burbuja' : '⤴ Desplegar las personas en el mapa'}</button>
+    ${insts.length > 1 ? `<div class="hint" style="margin-top:6px">Varios centros caen en el mismo punto
+      <span class="q" data-tip="OpenAlex georreferencia muchas instituciones al <b>centro de la ciudad</b>, no a su edificio.
+        Por eso se agrupan en una burbuja: siguen siendo centros distintos, y abajo van separados.">?</span></div>` : ''}
+    ${insts.map(([ii, ps]) => `<div class="hint" style="margin-top:8px"><b>${esc(INST[ii].name)}</b> · ${ps.length}</div><ul>` +
+      ps.slice(0, 12).map(n => `<li style="display:flex;align-items:center;gap:8px">
+        <span class="lnk" style="flex:1" onclick="showAuthorCard(${n.i})">${esc(n.name)}</span>
+        <span data-tip="${esc(numTip(n.name, liveW[n.i], liveRaw[n.i]))}">${numHTML(n, liveW[n.i], liveRaw[n.i], maxW)}</span></li>`).join('') +
+      (ps.length > 12 ? `<li class="hint">… y ${ps.length - 12} más</li>` : '') + '</ul>').join('')}`;
+  openDetail();
+  if (s.lat != null) map.flyTo([s.lat, s.lon], Math.max(map.getZoom(), expanded ? 12 : 8), {duration: .5});
+};
+window.toggleSite = function(sid) {
+  S.expandedSite = (String(S.expandedSite) === String(sid)) ? null : sid;
+  refreshMap(); showSiteCard(sid);
+};
+
 function showTeamEdgeCard(te) {
   detail.innerHTML = `
     <h3>Colaboración entre equipos</h3>
@@ -1897,7 +2004,7 @@ function lensPorGrano() {
 }
 $('seg-grain').addEventListener('click', ev => {
   const b = ev.target.closest('button'); if (!b) return;
-  S.grain = b.dataset.v; S.selTeam = null; lensPorGrano(); syncGrainSeg(); refreshAll();
+  S.grain = b.dataset.v; S.selTeam = null; S.expandedSite = null; lensPorGrano(); syncGrainSeg(); refreshAll();
 });
 function segWire(id, key, cast = v => v) {
   $(id).addEventListener('click', ev => {
@@ -2018,6 +2125,7 @@ window.openPersona = async function(q) {
   $('p-lines').innerHTML = ''; $('p-team').innerHTML = '';
   if (pNet) { pNet.destroy(); pNet = null; }
   pStatus('<div class="spin"></div><div>consultando OpenAlex…</div>');
+  let fusion = null;
   try {
     let ids = arr(q.ids), label = q.name;               // arr(): fragmentos, tolera string suelto
     if (!ids.length && q.id) ids = [q.id];
@@ -2027,24 +2135,54 @@ window.openPersona = async function(q) {
         catch(e) { label = ids[0]; }
       }
     } else {
-      const j = await oa('https://api.openalex.org/authors?search=' + encodeURIComponent(q.name) + '&per-page=8');
+      const j = await oa('https://api.openalex.org/authors?search=' + encodeURIComponent(q.name) + '&per-page=25');
       if (gen !== pGen) return;
-      const cands = (j.results || []).filter(r => (r.works_count || 0) > 3);
-      if (!cands.length) { pStatus(`<div>No encuentro a nadie llamado «${esc(q.name)}» en OpenAlex.</div>`); return; }
-      if (cands.length > 1 && (cands[1].works_count || 0) > (cands[0].works_count || 0) * 0.25) {
-        pStatus(`<div>¿Cuál de estos?</div><div id="p-cands">` + cands.slice(0,6).map(r => {
-          const hint = r.last_known_institutions?.[0]?.display_name ?? r.hint ?? '';
-          return `<div class="row" onclick='openPersona(${esc(JSON.stringify({id:r.id.split('/').pop(), name:r.display_name}))})'>
+      const all = j.results || [];
+      if (!all.length) { pStatus(`<div>No encuentro a nadie llamado «${esc(q.name)}» en OpenAlex.</div>`); return; }
+      /* (2026-08-26) FUSIÓN EN VIVO de perfiles fragmentados. OpenAlex parte a mucha gente en varios
+         perfiles (Moleón: 7; Vieta: 11). Se suman al principal los que tienen el MISMO apellido e
+         inicial y además: nombre completo igual, o comparten institución, o son fragmentos pequeños
+         (≤3 obras) del mismo país. Se enseña la lista para que sea verificable. */
+      const norm = x => (x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+        .replace(/[^a-z ]/g, ' ').trim().split(/\s+/).filter(Boolean);
+      /* apellidos = todos los tokens menos el primero (en España el apellido «bueno» puede ser el 1º o el
+         2º: «Á. Moleón» vs «Álvaro Moleón-Ruiz»). Compatibles = misma inicial y algún apellido en común. */
+      const parts = r => { const t = norm(r.display_name); return {ini: t.length ? t[0][0] : '', sur: new Set(t.slice(1))}; };
+      const compat = (a, b) => { const A = parts(a), B = parts(b);
+        return A.ini && A.ini === B.ini && [...A.sur].some(x => x.length > 2 && B.sur.has(x)); };
+      const instsOf = r => new Set((r.last_known_institutions || []).map(i => i && i.display_name)
+        .concat((r.affiliations || []).map(a => a && a.institution && a.institution.display_name)).filter(Boolean));
+      const ccOf = r => r.last_known_institutions?.[0]?.country_code || null;
+      const grupoDe = top => {
+        const ti = instsOf(top), tn = norm(top.display_name).join(' '), tc = ccOf(top);
+        return all.filter(r => compat(top, r) && (norm(r.display_name).join(' ') === tn ||
+          [...instsOf(r)].some(x => ti.has(x)) || ((r.works_count || 0) <= 3 && tc && ccOf(r) === tc)));
+      };
+      const cands = all.filter(r => (r.works_count || 0) > 3);
+      const top = cands[0] || all[0];
+      const grupo = grupoDe(top);
+      const otros = cands.filter(r => !grupo.includes(r));
+      if (otros.length && (otros[0].works_count || 0) > (top.works_count || 0) * 0.25) {
+        pStatus(`<div>¿Cuál de estos?</div><div id="p-cands">` + [top, ...otros].slice(0, 6).map(r => {
+          const g = grupoDe(r), hint = r.last_known_institutions?.[0]?.display_name ?? r.hint ?? '';
+          const obras = g.reduce((a, x) => a + (x.works_count || 0), 0);
+          return `<div class="row" onclick='openPersona(${esc(JSON.stringify({ids: g.map(x => x.id.split('/').pop()), name: r.display_name}))})'>
             <span class="nm"><span class="t">${esc(r.display_name)}</span>
-            <span class="d">${esc(hint)} · ${r.works_count} obras</span></span></div>`;
+            <span class="d">${esc(hint)} · ${obras} obras${g.length > 1 ? ` · ${g.length} perfiles fusionados` : ''}</span></span></div>`;
         }).join('') + '</div>');
         return;
       }
-      ids = [cands[0].id.split('/').pop()]; label = cands[0].display_name;
+      ids = grupo.map(r => r.id.split('/').pop()); if (!ids.length) ids = [top.id.split('/').pop()];
+      label = top.display_name;
+      if (grupo.length > 1) fusion = grupo;
     }
     if (gen !== pGen) return;
     $('p-who').textContent = label;
-    $('p-sub').innerHTML = scopeNote();
+    $('p-sub').innerHTML = scopeNote() + (fusion ? ` · <b>${fusion.length} perfiles de OpenAlex fusionados</b>
+      <span class="q" data-tip="OpenAlex tenía a esta persona partida en varios perfiles (variantes del nombre). Se han sumado:
+        ${esc(fusion.map(r => r.display_name + ' (' + (r.works_count || 0) + ')').join(' · '))}.<br><br>
+        Si alguno NO es suyo, dímelo con «✎ ¿Algo mal?».">?</span>` : '');
+    renderScopeChips();
     /* obras 2020→hoy */
     /* Si estás dentro de un tema, la persona se ve TAMBIÉN dentro de ese tema: se aplica
        la MISMA query del corpus a su producción. Así el liderazgo que ves aquí y el del
@@ -2273,8 +2411,18 @@ const scopeLabel = () => {
 window.setPScope = function(v) {
   S.pScope = v;
   $('p-scope').value = v;
+  renderScopeChips();
   if (pLast) openPersona(pLast);
 };
+/* chips para «tirar atrás» sin buscar en el desplegable (Gerard: «que sea fácil generalizar de nuevo») */
+function renderScopeChips() {
+  const box = $('p-scope-chips'); if (!box) return;
+  const hereOk = AT_SCOPE.some(t => t.slug === D.meta.slug) || (window.RM_TOPICS && RM_TOPICS[D.meta.slug]);
+  let h = '';
+  if (S.pScope !== 'all') h += `<span class="chip-sm" onclick="setPScope('all')" data-tip="Quitar el filtro: toda su obra.">✕ toda su obra</span> `;
+  if (hereOk && S.pScope !== D.meta.slug) h += `<span class="chip-sm" onclick="setPScope('${esc(D.meta.slug)}')" data-tip="Volver a filtrar por el tema de ESTE mapa.">solo «${esc(D.meta.topic)}»</span>`;
+  box.innerHTML = h;
+}
 (function initScope() {
   const sel = $('p-scope');
   // si el tema activo no tiene query (p.ej. la unión «todos»), se arranca en «toda su obra»
@@ -2297,6 +2445,7 @@ window.setPScope = function(v) {
       `<option value="${esc(v)}"${v === S.pScope ? ' selected' : ''}>${esc(t)}</option>`).join('');
   }
   sel.onchange = () => setPScope(sel.value);
+  renderScopeChips();
 })();
 
 /* saltar de una persona a otra sin volver al mapa (petición de Gerard) */
@@ -2336,6 +2485,14 @@ function cerrarPersona() {
   if (pNet) { pNet.destroy(); pNet = null; }
   pStatus('');
 }
+$('p-back').onclick = () => $('p-close').click();
+$('btn-map').onclick = () => { if ($('persona').classList.contains('open')) $('p-close').click(); };
+$('p-fb').onclick = () => {
+  const ids = pLast ? (arr(pLast.ids).length ? arr(pLast.ids) : (pLast.id ? [pLast.id] : null)) : null;
+  const quien = $('p-who').textContent;
+  $('p-close').click();                                  // el formulario vive en el panel del mapa
+  abrirFormulario("corrección sobre un mapa personal", quien, ids, "Filtro de tema: " + scopeLabel());
+};
 $('p-close').onclick = () => {
   if (history.state && history.state.persona) { history.back(); return; }  // popstate cierra
   try {
@@ -2367,7 +2524,10 @@ const bestInst = list => {
 
 const scopeNote = () => (S.pScope === 'all')
   ? `toda su obra ${D.meta.date_from.slice(0,4)}–${D.meta.date_to.slice(0,4)} (OpenAlex)`
-  : `<b>solo sus artículos de «${esc(scopeLabel())}»</b>${S.pScope === D.meta.slug ? ' — el mismo filtro que el mapa' : ''}`;
+  : `<b>solo sus artículos del tema «${esc(scopeLabel())}»</b>${S.pScope === D.meta.slug ? ' — el mismo filtro que el mapa' : ''}
+     <span class="q" data-tip="El filtro es el <b>tema del proyecto</b> (su búsqueda). Las <b>líneas</b> del radial son la
+       clasificación de <b>OpenAlex</b> de cada artículo: pueden llamarse distinto al tema. Un artículo entra en el tema
+       por su texto y OpenAlex lo clasifica por su cuenta.">?</span>`;
 
 function renderPersona(name, ids, rawWorks, truncated) {
   const idSet = new Set(ids.map(x => 'https://openalex.org/' + x));
