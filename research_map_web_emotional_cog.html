@@ -668,7 +668,18 @@ header{display:flex; flex-direction:column; align-items:stretch; gap:6px; z-inde
 .hrow{display:flex; align-items:center; gap:14px; flex-wrap:nowrap; min-width:0}
 .hrow .sub{overflow:hidden; text-overflow:ellipsis}
 .seg-view button.on{background:var(--accent)}
-#persona header{flex-direction:row; align-items:center; gap:12px; flex-wrap:wrap}
+#persona header{flex-direction:column; align-items:stretch; gap:8px; flex-wrap:nowrap}
+#persona .p-row1{display:flex; align-items:center; gap:10px; min-width:0}
+#persona .p-row2{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+#persona .p-title{min-width:0; flex:1; overflow:hidden}
+#persona .p-title h1,#persona .p-title .sub{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#persona .p-row1 button{flex:0 0 auto; white-space:nowrap}
+#persona #p-fb,#persona #p-link{border:1px solid var(--baseline); background:var(--surface);
+  border-radius:8px; padding:5px 10px; cursor:pointer; font-size:12.5px; color:var(--ink2)}
+#persona #p-scope{padding:6px 8px; border:1px solid var(--baseline); border-radius:9px;
+  font:inherit; font-size:12.5px; max-width:320px}
+#persona #p-search{width:230px; padding:6px 10px; border:1px solid var(--baseline);
+  border-radius:9px; font:inherit; font-size:13px}
 header h1{font-size:16px; font-weight:650; white-space:nowrap}
 header .sub{color:var(--muted); font-size:11.5px; white-space:nowrap}
 .seg{display:flex; border:1px solid var(--baseline); border-radius:8px; overflow:hidden}
@@ -1072,30 +1083,26 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
 
 <div id="persona">
   <header>
-    <div class="seg seg-view">
-      <button id="p-back" data-tip="Volver al mapa del tema, al mismo sitio donde estabas.">🗺 Research Map</button>
-      <button class="on">👤 Mapa personal</button>
+    <div class="p-row1">
+      <div class="seg seg-view">
+        <button id="p-back" data-tip="Volver al mapa del tema, al mismo sitio donde estabas.">🗺 Research Map</button>
+        <button class="on">👤 Mapa personal</button>
+      </div>
+      <div class="p-title"><h1 id="p-who">—</h1><div class="sub" id="p-sub"></div></div>
+      <button id="p-fb" data-tip="¿Te han fusionado con otro, faltan artículos, sobra alguien? Cuéntamelo.">✎ ¿Algo mal?</button>
+      <button id="p-link" data-tip="Copia el <b>enlace directo</b> a este mapa personal.<br>Pegándolo en el navegador (o enviándoselo a alguien) se abre justo esta pantalla, sin pasar por el mapa general.">🔗 Copiar enlace</button>
+      <button class="close" id="p-close" title="volver al mapa">← Volver al mapa</button>
     </div>
-    <div style="min-width:0;flex:1"><h1 id="p-who">—</h1><div class="sub" id="p-sub"></div></div>
-    <div id="p-scope-box" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <div class="p-row2">
       <span class="flab" style="margin:0" data-tip="<b>Filtro = TEMA del proyecto</b> (la misma búsqueda que define cada mapa).<br><br>
         Las <b>líneas</b> del radial son otra cosa: la clasificación oficial de <b>OpenAlex</b> de cada artículo.
         Por eso, filtrando por un tema, pueden aparecer líneas con otro nombre: un artículo entra en el tema
         «Fear, Extinction &amp; OCD» por su texto y OpenAlex lo clasifica como «Psychedelics and Drug Studies».">Filtrar por tema <span class="q">?</span></span>
-      <select id="p-scope" style="padding:6px 8px;border:1px solid var(--baseline);
-              border-radius:9px;font:inherit;font-size:12.5px;max-width:300px"></select>
+      <select id="p-scope"></select>
       <span id="p-scope-chips"></span>
+      <input id="p-search" placeholder="🔎 buscar a otra persona…"
+             title="Escribe un nombre y pulsa Intro para saltar a su mapa, sin volver atrás.">
     </div>
-    <input id="p-search" placeholder="🔎 buscar a otra persona…" style="width:220px;
-           padding:6px 10px;border:1px solid var(--baseline);border-radius:9px;font:inherit;font-size:13px"
-           title="Escribe un nombre y pulsa Intro para saltar a su mapa, sin volver atrás.">
-    <button id="p-fb" data-tip="¿Te han fusionado con otro, faltan artículos, sobra alguien? Cuéntamelo."
-            style="border:1px solid var(--baseline);background:var(--surface);border-radius:7px;
-                   padding:4px 9px;cursor:pointer;font-size:12.5px">✎ ¿Algo mal? Cuéntamelo</button>
-    <button id="p-link" title="copiar el enlace directo a este mapa personal (se abre sin pasar por el mapa general)"
-            style="border:1px solid var(--baseline);background:var(--surface);border-radius:7px;
-                   padding:4px 9px;cursor:pointer;font-size:13px">🔗</button>
-    <button class="close" id="p-close" title="volver al mapa">← Volver al mapa</button>
   </header>
   <div id="p-main">
     <div id="p-pane"><div id="p-net"></div><div id="p-status" style="display:none"></div></div>
@@ -2241,8 +2248,13 @@ window.openPersona = async function(q) {
       /* apellidos = todos los tokens menos el primero (en España el apellido «bueno» puede ser el 1º o el
          2º: «Á. Moleón» vs «Álvaro Moleón-Ruiz»). Compatibles = misma inicial y algún apellido en común. */
       const parts = r => { const t = norm(r.display_name); return {ini: t.length ? t[0][0] : '', sur: new Set(t.slice(1))}; };
-      const compat = (a, b) => { const A = parts(a), B = parts(b);
-        return A.ini && A.ini === B.ini && [...A.sur].some(x => x.length > 2 && B.sur.has(x)); };
+      /* OJO (31-ago): esto NO era reflexivo — «Rui He» no era compatible consigo mismo porque
+         exigía apellidos de MÁS de 2 letras, y «He» tiene 2. Resultado: grupo vacío → «0 obras»
+         en todos los candidatos del desambiguador. Los apellidos chinos de 2 letras (He, Wu, Li,
+         Xu, Ma…) son un caso masivo, no una excepción. */
+      const compat = (a, b) => { if (a.id && a.id === b.id) return true;
+        const A = parts(a), B = parts(b);
+        return A.ini && A.ini === B.ini && [...A.sur].some(x => x.length >= 2 && B.sur.has(x)); };
       const instsOf = r => new Set((r.last_known_institutions || []).map(i => i && i.display_name)
         .concat((r.affiliations || []).map(a => a && a.institution && a.institution.display_name)).filter(Boolean));
       const ccOf = r => r.last_known_institutions?.[0]?.country_code || null;
@@ -2258,8 +2270,8 @@ window.openPersona = async function(q) {
       if (otros.length && (otros[0].works_count || 0) > (top.works_count || 0) * 0.25) {
         pStatus(`<div>¿Cuál de estos?</div><div id="p-cands">` + [top, ...otros].slice(0, 6).map(r => {
           const g = grupoDe(r), hint = r.last_known_institutions?.[0]?.display_name ?? r.hint ?? '';
-          const obras = g.reduce((a, x) => a + (x.works_count || 0), 0);
-          return `<div class="row" onclick='openPersona(${esc(JSON.stringify({ids: g.map(x => x.id.split('/').pop()), name: r.display_name}))})'>
+          const obras = g.length ? g.reduce((a, x) => a + (x.works_count || 0), 0) : (r.works_count || 0);
+          return `<div class="row" onclick='openPersona(${esc(JSON.stringify({ids: (g.length ? g : [r]).map(x => x.id.split('/').pop()), name: r.display_name}))})'>
             <span class="nm"><span class="t">${esc(r.display_name)}</span>
             <span class="d">${esc(hint)} · ${obras} obras${g.length > 1 ? ` · ${g.length} perfiles fusionados` : ''}</span></span></div>`;
         }).join('') + '</div>');
@@ -2588,13 +2600,25 @@ $('p-fb').onclick = () => {
   $('p-close').click();                                  // el formulario vive en el panel del mapa
   abrirFormulario("corrección sobre un mapa personal", quien, ids, "Filtro de tema: " + scopeLabel());
 };
-$('p-close').onclick = () => {
-  if (history.state && history.state.persona) { history.back(); return; }  // popstate cierra
+function limpiarHashPersona() {
   try {
     const p = new URLSearchParams(location.hash.slice(1));
     p.delete('persona');
     history.replaceState(null, '', p.toString() ? '#' + p.toString() : location.pathname);
   } catch(e) {}
+}
+$('p-close').onclick = () => {
+  /* Si se entró por ENLACE DIRECTO (#persona=…), hay estado pero NO hay entrada anterior:
+     history.back() no cerraba nada y el botón «Research Map» parecía muerto (31-ago).
+     Se intenta el back —para respetar la navegación entre personas— con red de seguridad:
+     si en 150 ms no se ha cerrado, se cierra a mano. El botón SIEMPRE tiene que funcionar. */
+  if (history.state && history.state.persona) {
+    const t = setTimeout(() => { limpiarHashPersona(); cerrarPersona(); }, 150);
+    window.addEventListener('popstate', () => clearTimeout(t), {once: true});
+    history.back();
+    return;
+  }
+  limpiarHashPersona();
   cerrarPersona();
 };
 /* botón ATRÁS del navegador: cierra el overlay o navega a la persona del historial,
