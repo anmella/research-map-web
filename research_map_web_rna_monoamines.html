@@ -665,8 +665,14 @@ button{font:inherit}
    cuando el subtítulo cambiaba de longitud con la lente (Gerard: «¿por qué cambia de lugar?») */
 header{display:flex; flex-direction:column; align-items:stretch; gap:6px; z-index:1200;
        padding:8px 14px; background:var(--surface); border-bottom:1px solid var(--grid)}
-.hrow{display:flex; align-items:center; gap:14px; flex-wrap:nowrap; min-width:0}
-.hrow .sub{overflow:hidden; text-overflow:ellipsis}
+/* (1-sep) La 2ª fila iba con nowrap: al no caber, los controles se comprimían y el texto se
+   partía o se solapaba («Macro equip», «Ver por centros» en dos líneas). Ahora la fila envuelve,
+   los controles no se encogen y el único elástico es el buscador. */
+.hrow{display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap; min-width:0}
+.hrow > *{flex:0 0 auto}
+.hrow .sub{overflow:hidden; text-overflow:ellipsis; min-width:0}
+.hrow .seg button,.hrow > button,.hrow > select{white-space:nowrap}
+#search{flex:1 1 240px; min-width:170px}
 .seg-view button.on{background:var(--accent)}
 #persona header{flex-direction:column; align-items:stretch; gap:8px; flex-wrap:nowrap}
 #persona .p-row1{display:flex; align-items:center; gap:10px; min-width:0}
@@ -802,6 +808,14 @@ main{flex:1; position:relative; min-height:0}
 #guia .canales{background:var(--page); border:1px solid var(--grid); border-radius:10px;
                padding:10px 12px; font-size:13px; line-height:1.5; margin:12px 0}
 #guia .acciones{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+#guia .rev-q{border:1px solid var(--grid); border-radius:10px; padding:9px 11px; margin-bottom:8px;
+  background:var(--page)}
+#guia .rev-h{font-size:13.2px; line-height:1.45; margin-bottom:6px; display:flex; gap:8px;
+  align-items:flex-start; flex-wrap:wrap}
+#guia .rev-h b{color:var(--ink)}
+#guia .btn.mini{width:auto; padding:2px 8px; font-size:11.5px; margin-left:auto; white-space:nowrap}
+#guia textarea{width:100%; border:1px solid var(--baseline); border-radius:8px; padding:6px 8px;
+  font:inherit; font-size:12.8px; background:var(--surface); resize:vertical}
 #guia .cerrar{border:0; background:none; color:var(--muted); cursor:pointer; font-size:12.5px; padding:6px 2px}
 
 /* ── overlay PERSONA ──────────────────────────────────────────────────── */
@@ -976,7 +990,8 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
         Hasta aquí, sí: el mapa cuenta <b>volumen</b> (cada paper vale 1, descontado por antigüedad).
         Pero volumen e impacto son <b>ejes distintos</b>: medido en este proyecto, de los 20 primeros
         por volumen, <b>8 se caen</b> del top-20 por impacto (correlación de rangos 0,60).<br><br>
-        <b>Impacto</b> usa el <b>FWCI</b> de OpenAlex: citas del paper divididas por lo esperado en
+        <b>Impacto</b> usa el <b>FWCI</b> de OpenAlex — <i>Field-Weighted Citation Impact</i>,
+        «impacto de citación ponderado por campo»: citas del paper divididas por lo esperado en
         <b>su campo, su año y su tipo</b>. 1,0 = la media mundial. Ya corrige que los papers recientes
         no hayan tenido tiempo de acumular citas, y NO es el impact factor de la revista (ese solo
         cubriría el 18-49% de estos papers, con sesgo contra neurociencia e ingeniería).<br><br>
@@ -985,7 +1000,7 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
     </div>
     <div class="seg" id="seg-weight">
       <button data-v="vol" class="on" data-tip="<b>Volumen</b> — cada paper vale 1.<br>Pregunta: ¿quién produce más?">Volumen</button>
-      <button data-v="imp" data-tip="<b>Impacto</b> — cada paper vale su <b>FWCI</b> (citas / lo esperado en su campo y año; capado a 10 para que un solo paper viral no domine).<br>Pregunta: ¿quién produce lo que se usa?">Impacto</button>
+      <button data-v="imp" data-tip="<b>Impacto</b> — cada paper vale su <b>FWCI</b> (<i>Field-Weighted Citation Impact</i>: citas / lo esperado en su campo y año; 1,0 = la media mundial de su campo; capado a 10 para que un solo paper viral no domine).<br>Pregunta: ¿quién produce lo que se usa?">Impacto</button>
       <button data-v="exc" data-tip="<b>Excelencia</b> — solo cuentan los papers del <b>top 10% mundial</b> de su campo y año; cada uno vale 1.<br>Pregunta: ¿quién produce lo mejor?">Excelencia</button>
     </div>
     <div class="fhint" id="weight-hint"></div>
@@ -1061,26 +1076,63 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
   <div class="who" id="guia-who"></div>
   <div style="font-size:13.5px;line-height:1.5;margin-bottom:12px">Este mapa está hecho <b>solo con datos
     abiertos de OpenAlex</b> (quién firma qué y en qué posición). Ninguna persona lo ha curado: por eso
-    necesito tu ojo. <b>Mira sobre todo lo que conoces de verdad</b> — no hace falta que revises el mundo entero.</div>
-  <ol>
-    <li><b>La gente top.</b> ¿Están los que deberían estar? ¿Sobra alguien que no es de este campo?</li>
-    <li><b>Los equipos.</b> ¿Los grupos que ves son grupos reales? ¿Alguien aparece bajo el paraguas equivocado?</li>
-    <li><b>Las conexiones entre personas.</b> ¿Las colaboraciones que dibuja existen? ¿Falta alguna evidente?</li>
-    <li><b>Tu mapa personal.</b> Búscate: ¿tus líneas y tus colaboradores son los tuyos? ¿Te han fusionado
-        con otra persona o partido en dos?</li>
-  </ol>
-  <div class="canales"><b>Cómo contarme lo que veas — como te sea más cómodo:</b><br>
-    · el botón <b>✎</b> que hay en cada ficha (persona, equipo) y aquí abajo, que redacta el mensaje solo; o<br>
-    · simplemente <b>responde al correo</b> con el que te llegó este enlace.</div>
+    necesito tu ojo. <b>Mira sobre todo lo que conoces de verdad</b> — no hace falta que revises el mundo entero.
+    <br><br>Responde <b>aquí mismo</b>: cada punto tiene un botón para ir a verlo y una caja para escribir.
+    Lo que escribas se guarda solo en tu navegador hasta que lo envíes, así que puedes ir y volver.</div>
+
+  <div class="rev-q" data-k="top">
+    <div class="rev-h"><b>1. La gente top.</b> ¿Están los que deberían estar? ¿Sobra alguien que no es de este campo?
+      <button class="btn mini" onclick="irARevisar('top')">Ir a verlo →</button></div>
+    <textarea id="rev-top" rows="2" placeholder="p. ej.: falta X, de la Universidad Y; sobra Z, que es de otro campo"></textarea>
+  </div>
+  <div class="rev-q" data-k="equipos">
+    <div class="rev-h"><b>2. Los equipos.</b> ¿Son grupos reales? ¿Alguien está bajo el paraguas equivocado?
+      <button class="btn mini" onclick="irARevisar('equipos')">Ir a verlo →</button></div>
+    <textarea id="rev-equipos" rows="2" placeholder="p. ej.: X no cuelga de Y, tiene grupo propio desde 2021"></textarea>
+  </div>
+  <div class="rev-q" data-k="conex">
+    <div class="rev-h"><b>3. Las conexiones.</b> ¿Las colaboraciones que dibuja existen? ¿Falta alguna evidente?
+      <button class="btn mini" onclick="irARevisar('conex')">Ir a verlo →</button></div>
+    <textarea id="rev-conex" rows="2" placeholder="p. ej.: falta la colaboración con el grupo de…"></textarea>
+  </div>
+  <div class="rev-q" data-k="yo">
+    <div class="rev-h"><b>4. Tu mapa personal.</b> ¿Tus líneas y colaboradores son los tuyos? ¿Te han fusionado
+      con otra persona o partido en dos?
+      <button class="btn mini" onclick="irARevisar('yo')">Abrir el mío →</button></div>
+    <textarea id="rev-yo" rows="2" placeholder="p. ej.: me faltan los artículos de…; el de la UPF no soy yo"></textarea>
+  </div>
+  <div class="rev-q" data-k="tema">
+    <div class="rev-h"><b>5. El tema en sí.</b> ¿La búsqueda que define este mapa deja fuera algo importante,
+      o mete cosas que no son del campo?
+      <button class="btn mini" onclick="irARevisar('tema')">Ver la búsqueda →</button></div>
+    <textarea id="rev-tema" rows="2" placeholder="p. ej.: falta el término…; sobra…, que trae literatura de otro campo"></textarea>
+  </div>
+  <div class="rev-q" data-k="filtros">
+    <div class="rev-h"><b>6. ¿Se entiende?</b> Abre <b>Filtros</b> y prueba las lentes (Senior / 1º autor / Todos)
+      y los pesos (Volumen / Impacto / Excelencia): ¿se entiende qué hace cada uno?
+      <button class="btn mini" onclick="irARevisar('filtros')">Abrir filtros →</button></div>
+    <textarea id="rev-filtros" rows="2" placeholder="p. ej.: no entiendo qué cuenta «Excelencia»; el peso no me queda claro"></textarea>
+  </div>
+  <div class="rev-q" data-k="otros">
+    <div class="rev-h"><b>7. Cualquier otra cosa.</b> Lo que te haya chirriado, sobre el mapa o sobre la idea.</div>
+    <textarea id="rev-otros" rows="2" placeholder="lo que quieras contarme"></textarea>
+  </div>
+
+  <div class="canales"><b>Cuando termines, pulsa «Enviar mi revisión»</b>: se junta todo lo que has escrito
+    y se abre el correo ya redactado (o se copia, si prefieres pegarlo). También puedes responder sin más al
+    correo con el que te llegó el enlace.<br>
+    <span class="hint">El botón <b>✎</b> de cada ficha sigue existiendo para comentarios sueltos sobre una
+    persona o un equipo concretos —lo usa cualquiera que abra el mapa—; para tu revisión, mejor aquí, que
+    llega todo junto.</span></div>
   <div class="hint">Dos avisos honestos: esto <b>no es una evaluación</b> ni un ranking (no debe usarse para
     contratar ni evaluar), y <b>«no aparecer» casi nunca significa «no estar»</b>: cada vista mide un rol
     concreto — quien firma siempre en medio no aparece con la lente «Senior». Lo explica cada tooltip.</div>
   <div class="acciones">
-    <button class="btn primary" style="width:auto" onclick="cerrarGuia()">Ver el mapa</button>
+    <button class="btn primary" style="width:auto" onclick="enviarRevision()">✉️ Enviar mi revisión</button>
+    <button class="btn" style="width:auto" onclick="cerrarGuia()">Ver el mapa</button>
     <button class="btn" style="width:auto" id="guia-yo">👤 Ver mi mapa personal</button>
-    <button class="btn" style="width:auto" onclick="cerrarGuia();abrirFormulario('comentario general','',null,'')">✎ Escribir un comentario</button>
   </div>
-  <button class="cerrar" onclick="cerrarGuia()">No volver a mostrar esto</button>
+  <button class="cerrar" onclick="cerrarGuia()">Cerrar (lo escrito se guarda)</button>
 </div></div>
 
 <div id="persona">
@@ -1436,6 +1488,7 @@ L.control.zoom({position:'bottomright'}).addTo(map);
    OpenStreetMap estándar no la necesita (uso ligero + atribución). */
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   {attribution:'© OpenStreetMap contributors', maxZoom:18}).addTo(map);
+const haloLayer = L.layerGroup().addTo(map);     // círculos de CENTRO, debajo de todo
 const arcLayer = L.layerGroup().addTo(map);      // arcos debajo
 const markerLayer = L.layerGroup().addTo(map);   // burbujas encima
 const personArcLayer = L.layerGroup().addTo(map);// arcos de LA PERSONA seleccionada (encima)
@@ -1570,7 +1623,7 @@ function unidadesMapa() {
 
 function refreshMap() {
   arcLayer.clearLayers(); markerLayer.clearLayers(); markerByInst.clear();
-  personArcLayer.clearLayers();
+  personArcLayer.clearLayers(); haloLayer.clearLayers();
   instAgg = new Map();
   for (const n of N) {
     if (!vis_ids.has(n.i) || n.inst == null) continue;
@@ -1616,10 +1669,32 @@ function dibujarUnidades() {
       ? `<b>${esc(u.name)}</b><br>${esc(inst ? inst.name : '?')} · ${u.raw} papers`
       : `<b>${esc(u.name)}</b><br>${esc(inst ? inst.name : '?')} · ${u.k} miembros · ${u.raw} papers`,
       {direction: 'top'});
-    m.on('click', () => PERSON() ? showAuthorCard(u.i) : selectTeam(u.cl));
+    m.on('click', () => {
+      // acercar hasta ver el centro: antes centraba pero dejaba el zoom de continente
+      map.setView([lat, lon], Math.max(map.getZoom(), 11), {animate: true});
+      PERSON() ? showAuthorCard(u.i) : selectTeam(u.cl);
+    });
     markerLayer.addLayer(m);
   }
   if (U.length > MAXU) console.log(`[mapa] se dibujan ${MAXU} de ${U.length} unidades`);
+
+  /* CÍRCULO DEL CENTRO (Gerard, 1-sep): «que las personas de un mismo equipo aparezcan con los
+     círculos separados pero dentro de un mismo círculo grande que los rodee, donde se vea el
+     centro donde trabajan». Se dibuja donde hay ≥2 unidades en la misma sede; el radio cubre el
+     racimo y el borde lleva el nombre del centro. Va DEBAJO de los puntos y no intercepta clics
+     salvo en su propio borde. */
+  for (const [sid, k] of enSede) {
+    if (k < 2) continue;
+    const s2 = SITE(sid); if (!s2 || s2.lat == null) continue;
+    const rad = 111320 * 0.0016 * Math.sqrt(Math.max(1, k - 1)) + 130;   // metros
+    const c = L.circle([s2.lat, s2.lon], {radius: rad, color:'#8a8880', weight:1.2,
+      opacity:.55, fillColor:'#b9b7ae', fillOpacity:.10, interactive:true});
+    c.bindTooltip(`<b>${esc(s2.name)}</b> · ${k} ${PERSON() ? 'personas' : 'equipos'} aquí` +
+      (s2.greal === false ? '<br><span style="opacity:.7">ubicación aproximada (centro de la ciudad)</span>' : '') +
+      '<br><span style="opacity:.7">clic para ver quién hay</span>', {direction:'top'});
+    c.on('click', () => (typeof showSiteCard === 'function' ? showSiteCard(sid) : showInstCard(sid)));
+    haloLayer.addLayer(c);
+  }
 
   /* líneas ENTRE UNIDADES: en Personas, las colaboraciones reales; en Equipos y
      Macro, las aristas entre clusters de ese nivel (cada vista, sus conexiones) */
@@ -1699,7 +1774,8 @@ function dibujarCentros() {
         fillColor:colOfCl(domCl), fillOpacity: teamSel ? (isSel ? 0.88 : 0.10) : 0.55});
     m.bindTooltip(`<b>${esc(inst.name)}</b>${inst.n_inst > 1 ? ` <span style="opacity:.7">· ${inst.n_inst} centros</span>` : ''}
                    ${inst.greal === false ? '<br><span style="opacity:.7">ubicación aproximada (centro de la ciudad)</span>' : ''}
-                   <br>${a.byCl.size} equipo${a.byCl.size === 1 ? '' : 's'} · ${a.tops.length} autores · ${a.raw} papers`,
+                   <br>${a.byCl.size} equipo${a.byCl.size === 1 ? '' : 's'} · ${a.tops.length} autores · ${a.raw} papers
+                   <br><span style="opacity:.7">clic para ver quién hay</span>`,
                   {direction:'top'});
     m.on('click', () => showInstCard(ii));
     markerLayer.addLayer(m); markerByInst.set(ii, m);
@@ -1738,16 +1814,26 @@ function refreshTeamList() {
     .sort((x,y) => (String(x.c.cl) === '—') - (String(y.c.cl) === '—')
                    || metricOfTeam(y.a) - metricOfTeam(x.a));
   const q = (($('team-filter') || {}).value || '').trim().toLowerCase();
+  /* (1-sep) Antes solo se miraba el nombre de la raíz y los 6 del `top` precalculado: buscando
+     «anmella» salía su equipo pero NO su macro-equipo, porque en el macro de Vieta no está entre
+     los 6 primeros. Ahora se busca entre TODOS los miembros visibles del cluster. */
+  const clsConMiembro = new Set();
+  if (q) for (const n of N) {
+    if (!vis_ids.has(n.i)) continue;
+    if ((n.name || '').toLowerCase().includes(q)) clsConMiembro.add(String(clOf(n)));
+  }
   const filtradas = q ? all.filter(({c, a}) =>
       (c.pi || '').toLowerCase().includes(q) ||
       (a.top && (a.top.name || '').toLowerCase().includes(q)) ||
-      (c.top || '').toLowerCase().includes(q)) : all;
+      (c.top || '').toLowerCase().includes(q) ||
+      clsConMiembro.has(String(c.cl))) : all;
   const rows = filtradas.slice(0, 40);
   const maxW = rows[0]?.a.w ?? 1;
   const lab = S.grain === 'team' ? 'Equipos' : S.grain === 'person' ? 'Personas'
             : (SENIOR_TREE ? 'Macro-equipos' : 'Subequipos');
   $('teams-h').innerHTML = `${lab} · ${q ? filtradas.length + ' de ' + all.length : all.length} visibles` +
-    (all.length > rows.length ? ` <span class="hint">(top ${rows.length})</span>` : '');
+    (all.length > rows.length ? ` <span class="hint">(top ${rows.length})</span>` : '') +
+    (q ? ` <span class="lnk" onclick="$('team-filter').value='';refreshAll()">✕ quitar «${esc(q)}»</span>` : '');
   $('teams-h').dataset.tip = !SENIOR_TREE
     ? `<b>Equipos detectados con Louvain</b> sobre la red de coautoría.<br><br><i>Hipótesis de estructura, no organigrama.</i>`
     : S.grain === 'team'
@@ -1811,11 +1897,29 @@ window.showAuthorCard = function(i) {
     const c = (D.levels.team || {clusters: []}).clusters.find(x => String(x.cl) === String(tnCl));
     return c ? c.pi : tnCl;
   })();
+  /* (1-sep, Gerard) «yo soy del equipo de Diego Hidalgo, que a su vez es parte del macro-equipo
+     de Vieta — esto se podría visualizar en la ficha». La cadena sale de los datos: `cs` es el
+     macro-equipo del nodo. Se enseña solo cuando es distinto del equipo. */
+  const msCl = n.cs;
+  const msn = (() => {
+    const c = (D.levels.sub || {clusters: []}).clusters.find(x => String(x.cl) === String(msCl));
+    return c ? c.pi : msCl;
+  })();
   const scholar = 'https://scholar.google.com/scholar?q=' + encodeURIComponent('"' + n.name + '"');
   detail.innerHTML = `
     <h3>${esc(n.name)}${estBadge(n)}${n.betw >= betwCut ? '<span class="badge nex" data-tip="<b>Nexo</b><br>Está entre las 15 personas con más <b>betweenness</b> de toda la red: por sus colaboraciones pasan muchos de los caminos que conectan grupos distintos. Es un conector entre mundos.">nexo</span>' : ''}</h3>
-    <div class="meta">${esc(inst ? inst.name : '¿institución?')} (${esc(n.cc ?? '?')}) ·
-      equipo de <span class="lnk" onclick="S.grain='team';syncGrainSeg();refreshAll();selectTeam('${tnCl}')">${esc(tn)}</span></div>
+    <div class="meta">${esc(inst ? inst.name : '¿institución?')} (${esc(n.cc ?? '?')})</div>
+    <div class="meta" data-tip="<b>La cadena que detectan los datos.</b><br>
+      El <b>equipo</b> es la raíz de autoría senior más cercana: quien co-firma tus artículos y dirige
+      (≥3 senior, ≥2 primeros autores distintos, ≥2 años).<br>
+      El <b>macro-equipo</b> es la raíz de todo el árbol, cuando de ella cuelgan ≥2 equipos con raíz propia.<br><br>
+      <i>Es una hipótesis leída de las publicaciones, no un organigrama.</i>">
+      ${tnCl && String(tnCl) !== '—'
+        ? `equipo de <span class="lnk" onclick="S.grain='team';syncGrainSeg();refreshAll();selectTeam('${tnCl}')">${esc(tn)}</span>`
+        : '<span class="hint">sin equipo identificado en este tema</span>'}${
+        (msCl && String(msCl) !== '—' && String(msCl) !== String(tnCl))
+        ? ` → dentro del macro-equipo de <span class="lnk" onclick="S.grain='sub';syncGrainSeg();refreshAll();selectTeam('${msCl}')">${esc(msn)}</span>`
+        : ''}</div>
     ${liveW[i] <= 0 ? `<div class="hint" style="margin:6px 0;padding:6px 8px;border:1px solid var(--baseline);border-radius:7px">
       ⚠ Está en el corpus (${n.np} papers) pero <b>con la lente y filtros actuales pesa 0</b>
       — por ejemplo, 0 papers senior con la lente «Senior» — así que no se pinta en el mapa ni sale en las listas.
@@ -1857,7 +1961,7 @@ window.showAuthorCard = function(i) {
         Por debajo de 1 firma más veces de primer autor que de senior; por encima, al revés.
         Es un patrón de firma, no un juicio de carrera.<br>
         <i>Solo se muestra a partir de ${MIN_N_DERIV} artículos senior.</i>">sen/1º <b>${n.rsf}</b></span>` : ''}
-      ${n.fw != null && n.nsen >= MIN_N_DERIV ? `<span class="kpi" data-tip="<b>Impacto de lo que dirige</b> (mediana de FWCI de sus papers senior).<br><br>
+      ${n.fw != null && n.nsen >= MIN_N_DERIV ? `<span class="kpi" data-tip="<b>Impacto de lo que dirige</b> (mediana del <b>FWCI</b> —<i>Field-Weighted Citation Impact</i>, citas frente a lo esperado en su campo y año— de sus papers senior).<br><br>
         FWCI = citas recibidas / citas esperadas en <b>su campo, su año y su tipo de documento</b>.
         <b>1,0 = la media mundial</b> de su campo; 2,0 = el doble.<br>
         Se usa la <b>mediana</b> porque las citas tienen cola pesada: un solo paper viral secuestraría la media.<br>
@@ -2596,6 +2700,9 @@ function renderScopeChips() {
       `<option value="${esc(v)}"${v === S.pScope ? ' selected' : ''}>${esc(t)}</option>`).join('');
   }
   sel.onchange = () => setPScope(sel.value);
+  const rol = $('p-role');
+  rol.value = S.pRole;
+  rol.onchange = () => { S.pRole = rol.value; if (pLast) openPersona({...pLast, _nav: true}); };
   renderScopeChips();
 })();
 
@@ -2819,7 +2926,7 @@ function renderPersona(name, ids, rawWorks, truncated) {
   /* radial determinista */
   const colOf = li => SLOTS[Math.min(li, SLOTS.length)] ?? OTHER;
   const colLine = li => li >= 8 || li === otrasIdx && lines[li]?.label.startsWith('Otras') ? OTHER : (SLOTS[li] ?? OTHER);
-  const R1 = 260, R2 = 560;
+  const R1 = 300, R2 = 640;      // radios: línea y colaboradores (ampliados para no solapar)
   const ang = lines.map((_, k) => (k / lines.length) * 2 * Math.PI - Math.PI/2);
   const vnodes = [{id:'p', label:name, shape:'dot', size:26, x:0, y:0, fixed:true,
     color:{background:'#0b0b0b', border:'#0b0b0b'},
@@ -2844,7 +2951,9 @@ function renderPersona(name, ids, rawWorks, truncated) {
     ks.forEach((k, j) => {
       const c = collabs[k];
       const off = ks.length>1 ? (j/(ks.length-1) - 0.5) : 0;
-      const a = base + off*span, R = R2 + (j % 2 ? 95 : 0);
+      /* (1-sep) 3 anillos escalonados en vez de 2 y más separación: con 2 anillos, nombres
+         largos vecinos («Diego Hidalgo-Mazzei» / «Raquel Sanchez-Valle») se solapaban. */
+      const a = base + off*span, R = R2 + (j % 3) * 105;
       const nexo = c.shared.length >= 2;   // colabora contigo en 2+ líneas = conector real
       vnodes.push({id:'c'+k, x:Math.round(R*Math.cos(a)), y:Math.round(R*Math.sin(a)), fixed:true,
         label: c.name, shape:'dot', size:6 + 13*Math.sqrt(c.w/wMax),   // TODOS con nombre
@@ -3041,8 +3150,69 @@ window.abrirGuia = function() {
   $('guia').classList.add('open');
 };
 window.cerrarGuia = function() {
+  guardarRevision();
   $('guia').classList.remove('open');
   try { localStorage.setItem(GUIA_KEY, '1'); } catch(e) {}
+};
+
+/* ── La revisión se responde AQUÍ (Gerard, 1-sep): un campo por pregunta, un botón que lleva
+   a la zona del mapa que hay que mirar, y un envío único con todo junto. El ✎ de cada ficha
+   se queda para comentarios sueltos de cualquier visitante. ───────────────────────────────── */
+const REV_CAMPOS = ['top','equipos','conex','yo','tema','filtros','otros'];
+const REV_KEY = 'rm_rev_' + D.meta.slug;
+function guardarRevision() {
+  const o = {}; REV_CAMPOS.forEach(k => { const el = $('rev-' + k); if (el) o[k] = el.value; });
+  try { localStorage.setItem(REV_KEY, JSON.stringify(o)); } catch(e) {}
+}
+(function cargarRevision() {
+  try {
+    const o = JSON.parse(localStorage.getItem(REV_KEY) || '{}');
+    REV_CAMPOS.forEach(k => { const el = $('rev-' + k); if (el && o[k]) el.value = o[k]; });
+  } catch(e) {}
+  REV_CAMPOS.forEach(k => { const el = $('rev-' + k); if (el) el.addEventListener('input', guardarRevision); });
+})();
+
+/* «Ir a verlo»: cierra la guía y deja al revisor EN el sitio exacto de cada pregunta */
+window.irARevisar = function(k) {
+  guardarRevision();
+  $('guia').classList.remove('open');
+  if (k === 'top')     { S.grain = 'person'; lensPorGrano(); syncGrainSeg(); refreshAll();
+                         $('teams-panel').classList.remove('closed'); }
+  if (k === 'equipos') { S.grain = 'team';   lensPorGrano(); syncGrainSeg(); refreshAll();
+                         $('teams-panel').classList.remove('closed'); }
+  if (k === 'conex')   { S.grain = 'person'; lensPorGrano(); syncGrainSeg(); S.mapMode = 'unit';
+                         $('btn-sites').classList.remove('on'); refreshAll(); }
+  if (k === 'yo')      { const rev = D.meta.reviewer; if (rev) openPersona({name: rev});
+                         else $('search').focus(); }
+  if (k === 'tema')    { $('btn-datos').click(); }
+  if (k === 'filtros') { $('filters-pop').classList.add('open'); $('btn-filters').classList.add('active'); }
+  setTimeout(() => { if (k !== 'yo') $('btn-guia').classList.add('pulse'); }, 400);
+};
+
+window.enviarRevision = function() {
+  guardarRevision();
+  const ETQ = {top:'1. La gente top', equipos:'2. Los equipos', conex:'3. Las conexiones',
+               yo:'4. Su mapa personal', tema:'5. El tema / la búsqueda',
+               filtros:'6. ¿Se entienden los filtros?', otros:'7. Otros comentarios'};
+  const partes = REV_CAMPOS.map(k => {
+    const v = ($('rev-' + k) || {}).value || '';
+    return v.trim() ? `${ETQ[k]}\n${v.trim()}` : null;
+  }).filter(Boolean);
+  if (!partes.length) {
+    alert('Aún no has escrito nada. Rellena al menos un apartado y vuelve a pulsar.');
+    return;
+  }
+  const cuerpo =
+    `Revisión del mapa «${D.meta.topic}»\n` +
+    `Revisor: ${D.meta.reviewer || '(sin nombre)'}\n` +
+    `Datos del ${D.meta.generated} · ${D.meta.n_papers} artículos\n` +
+    `\n${partes.join('\n\n')}\n`;
+  const asunto = `Revisión Research Map — ${D.meta.topic}`;
+  const url = 'mailto:' + encodeURIComponent(FEEDBACK_TO) +
+              '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo);
+  try { navigator.clipboard.writeText(cuerpo); } catch(e) {}
+  window.location.href = url;
+  alert('Se abre tu correo con la revisión ya escrita.\n(También se ha copiado al portapapeles por si prefieres pegarla.)');
 };
 $('btn-guia').onclick = abrirGuia;
 $('guia').addEventListener('click', ev => { if (ev.target.id === 'guia') cerrarGuia(); });
