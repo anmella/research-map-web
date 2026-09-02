@@ -1154,6 +1154,18 @@ div.vis-tooltip{font:12px/1.4 system-ui,sans-serif !important; background:var(--
         «Fear, Extinction &amp; OCD» por su texto y OpenAlex lo clasifica como «Psychedelics and Drug Studies».">Filtrar por tema <span class="q">?</span></span>
       <select id="p-scope"></select>
       <span id="p-scope-chips"></span>
+      <span class="flab" style="margin:0 0 0 10px" data-tip="<b>Qué papeles se cuentan.</b> Por defecto,
+        <b>todos</b>: el mapa personal enseña la obra entera, se firme donde se firme.<br><br>
+        <b>Solo lo que dirige</b> = último autor, o autor de correspondencia sin ser el primero
+        (la misma lente «senior» del mapa general).<br>
+        <b>Solo de 1º autor</b> = quien ejecuta el trabajo.<br><br>
+        Es <b>independiente</b> de la lente del mapa general, a propósito: a una persona se la
+        entiende mejor viéndola entera y filtrando después.">Papel <span class="q">?</span></span>
+      <select id="p-role">
+        <option value="all">Todos los papeles</option>
+        <option value="sen">Solo lo que dirige</option>
+        <option value="first">Solo de 1º autor</option>
+      </select>
       <input id="p-search" placeholder="🔎 buscar a otra persona…"
              title="Escribe un nombre y pulsa Intro para saltar a su mapa, sin volver atrás.">
     </div>
@@ -1281,7 +1293,8 @@ const S = {grain:'team', lens:'pi', yearFrom:D.meta.year_min, topN:0, country:''
            hl:D.meta.half_life,        // vida media en años; 0 = papers crudos
            numMode:'papers',           // qué número enseñar: papers | peso | barras
            wmode:'vol',                // qué pesa un paper: vol | imp | exc
-           mapMode:'unit'};            // qué dibuja el mapa: unit (la unidad elegida) | sites (centros)
+           mapMode:'unit',             // qué dibuja el mapa: unit (la unidad elegida) | sites (centros)
+           pRole:'all'};               // mapa personal: qué papeles cuenta (all | sen | first)
 
 /* ── tooltip propio: cualquier elemento con data-tip lo muestra al pasar el cursor ── */
 const tipEl = () => $('tip');
@@ -2431,7 +2444,7 @@ window.openPersona = async function(q) {
     }
     if (gen !== pGen) return;
     $('p-who').textContent = label;
-    $('p-sub').innerHTML = scopeNote() + (fusion ? ` · <b>${fusion.length} perfiles de OpenAlex fusionados</b>
+    $('p-sub').innerHTML = scopeNote() + roleNote() + (fusion ? ` · <b>${fusion.length} perfiles de OpenAlex fusionados</b>
       <span class="q" data-tip="OpenAlex tenía a esta persona partida en varios perfiles (variantes del nombre). Se han sumado:
         ${esc(fusion.map(r => r.display_name + ' (' + (r.works_count || 0) + ')').join(' · '))}.<br><br>
         Si alguno NO es suyo, dímelo con «✎ ¿Algo mal?».">?</span>` : '');
@@ -2792,6 +2805,12 @@ const bestInst = list => {
   return xs.slice().sort((a, b) => instPref(a.type) - instPref(b.type))[0].display_name;
 };
 
+const ROLE_LAB = {all:'todos los papeles', sen:'solo lo que dirige', first:'solo de 1º autor'};
+/* El subtítulo dice SIEMPRE qué papel se está contando: si no, un mapa filtrado se lee como la
+   obra entera de la persona (y le parece que le faltan artículos). */
+const roleNote = () => (S.pRole === 'all') ? ''
+  : ` · <b>${ROLE_LAB[S.pRole]}</b> <span class="q" data-tip="Estás viendo solo una parte de su obra.
+      Cambia «Papel» a «Todos» para verla entera.">?</span>`;
 const scopeNote = () => (S.pScope === 'all')
   ? `toda su obra ${D.meta.date_from.slice(0,4)}–${D.meta.date_to.slice(0,4)} (OpenAlex)`
   : `<b>solo sus artículos del tema «${esc(scopeLabel())}»</b>${S.pScope === D.meta.slug ? ' — el mismo filtro que el mapa' : ''}
@@ -2806,7 +2825,7 @@ function renderPersona(name, ids, rawWorks, truncated) {
   const wDe = w => wrec(w.publication_year) * (
     S.wmode === 'imp' ? Math.min(w.fwci ?? 0, 10) :
     S.wmode === 'exc' ? (w.citation_normalized_percentile?.is_in_top_10_percent ? 1 : 0) : 1);
-  const works = rawWorks.filter(w => w.publication_year).map(w => ({
+  const works0 = rawWorks.filter(w => w.publication_year).map(w => ({
     wid:w.id, title:stripHtml(w.display_name), y:w.publication_year, w:wDe(w),
     topic:w.primary_topic?.display_name ?? '(sin tópico)',
     sub:w.primary_topic?.subfield?.display_name ?? null,
@@ -2826,6 +2845,15 @@ function renderPersona(name, ids, rawWorks, truncated) {
       /* etiqueta corta = el centro real de trabajo, no el financiador */
       inst:bestInst(a.institutions)}))
   }));
+  /* Filtro de PAPEL (pregunta literal de Gerard: «¿se considera primer autor? ¿último? ¿todo?»).
+     Se aplica aquí, sobre la lista ya construida, para que TODO lo de abajo —líneas, colaboradores,
+     línea temporal, «en qué destaca»— lo herede sin tocar nada más. «Lo que dirige» usa la misma
+     definición que la lente estricta del mapa general: último | (corresponding y NO primero); el
+     campo `role` ya es excluyente, así que basta con último|corresp. */
+  const works = S.pRole === 'sen'   ? works0.filter(w => w.role === 'último' || w.role === 'corresp.')
+              : S.pRole === 'first' ? works0.filter(w => w.role === '1º')
+              : works0;
+
   /* Institución propia — MISMA regla que el mapa principal (antes era un regex ad hoc,
      y por eso Gerard salía en «Hospital Clínic» en el mapa y en «ISCIII» aquí).
      Regla única: se prefiere el tipo de centro donde de verdad se trabaja
@@ -2919,7 +2947,7 @@ function renderPersona(name, ids, rawWorks, truncated) {
 
   $('p-sub').innerHTML =
     `${esc(ownInst)} · <b>${works.length}${truncated ? '+' : ''}</b> artículos ${D.meta.date_from.slice(0,4)}–${REF} · ` +
-    scopeNote() +
+    scopeNote() + roleNote() +
     ` · top ${lines.length} líneas y ${collabs.length} colaboradores` +
     (S.wmode !== 'vol' ? ` · <b>peso ${WMODE_LAB[S.wmode]}</b>` : '');
 
